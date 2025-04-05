@@ -1,4 +1,4 @@
-# zriscv
+# riscvemu
 
 A RISC-V (RV64) emulator library written in Zig. I pulled this out of a bigger
 project of mine that runs Linux userspace in the browser, so the design leans
@@ -29,11 +29,11 @@ hook below).
 Add it to your `build.zig.zon`, then in `build.zig`:
 
 ```zig
-const zriscv = b.dependency("zriscv", .{
+const riscvemu = b.dependency("riscvemu", .{
     .target = target,
     .optimize = optimize,
 });
-exe.root_module.addImport("zriscv", zriscv.module("zriscv"));
+exe.root_module.addImport("riscvemu", riscvemu.module("riscvemu"));
 ```
 
 Small end-to-end example — map a page, write a few instructions, step until
@@ -41,16 +41,16 @@ Small end-to-end example — map a page, write a few instructions, step until
 
 ```zig
 const std = @import("std");
-const zriscv = @import("zriscv");
-const mem = zriscv.memory;
+const riscvemu = @import("riscvemu");
+const mem = riscvemu.memory;
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
-    var cpu = try zriscv.RiscVCpu.init(0, allocator);
+    var cpu = try riscvemu.RiscVCpu.init(0, allocator);
     defer cpu.deinit(allocator);
 
-    const space = try zriscv.AddressSpace.init(allocator, .Sv39);
+    const space = try riscvemu.AddressSpace.init(allocator, .Sv39);
     defer space.deinit(cpu.resources.manager);
 
     const code: u64 = 0x1000;
@@ -77,7 +77,7 @@ code with the syscall number (a7) and arguments (a0–a5) already pulled out of
 the registers. Whatever you return goes back into a0:
 
 ```zig
-fn handleEcall(space: *zriscv.AddressSpace, num: u64, args: [6]u64, user_data: ?*anyopaque) u64 {
+fn handleEcall(space: *riscvemu.AddressSpace, num: u64, args: [6]u64, user_data: ?*anyopaque) u64 {
     _ = space;
     _ = user_data;
     std.debug.print("syscall {d} ({d}, {d}, ...)\n", .{ num, args[0], args[1] });
